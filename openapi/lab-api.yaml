@@ -1,0 +1,827 @@
+openapi: 3.1.0
+info:
+  title: Deep Cyber Sample API
+  version: 1.1.0
+  description: |
+    Synthetic, deliberately vulnerable API for authorised security training.
+    No endpoint uses real customer data or cloud privileges. Vulnerable is the
+    default isolated-lab mode; owner-controlled flags select fixed comparisons.
+    URL preview is simulated. Command execution is confined to a separate
+    network-isolated export worker, never the application JVM.
+servers:
+  - url: http://127.0.0.1:8080
+    description: Local training gateway
+tags:
+  - name: System
+  - name: Authentication
+  - name: Orders
+  - name: Administration
+  - name: URL preview
+  - name: Workflows
+  - name: Supplier integration
+security:
+  - bearerAuth: []
+
+paths:
+
+  /api/ui-policy:
+    get:
+      tags: [System]
+      summary: Read the authenticated browser rendering policy
+      description: |
+        Read-only response with Cache-Control no-store. The owner control plane is
+        separate; this endpoint cannot change flags. The client fails fixed on
+        unavailable or invalid policy, polls every five seconds and reloads an
+        unsafe page on policy change. Existing executed JavaScript cannot be
+        revoked reliably; use a fresh browser context for fixed comparisons.
+      responses:
+        "200":
+          description: Current browser flags and immutable widget pin
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UiPolicy" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/orders/{id}/notes:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+    get:
+      tags: [Orders]
+      summary: Read persistent purchasing notes
+      description: Always enforces order-read authorization, independent of API-01 or XSS-01.
+      responses:
+        "200": { $ref: "#/components/responses/OrderNotes" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    put:
+      tags: [Orders]
+      summary: Save formatted purchasing notes for an owned order
+      description: |
+        Always enforces same-tenant ownership. Stored HTML is untrusted data in
+        both modes. XSS-01 deliberately trusts it at the Angular rendering sink;
+        Fixed mode applies Angular's normal HTML sanitization.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NotesUpdate" }
+      responses:
+        "200": { $ref: "#/components/responses/OrderNotes" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/secure/orders/{id}/notes:
+    $ref: "#/paths/~1api~1orders~1{id}~1notes"
+    description: |
+      Same authorization and raw stored data as the ordinary notes route.
+      Safe rendering is a client sink property; this API does not sanitize HTML.
+
+  /api/orders/{id}/export:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+    post:
+      tags: [Orders]
+      summary: Export a synthetic order fixture through the isolated worker
+      description: |
+        Always checks order-read authorization. With CMD-01 enabled, the worker
+        deliberately interprets the format as shell input. With CMD-01 disabled,
+        only csv/json are accepted and no shell is used. No notes, tokens, prices
+        or identity data are sent to the worker. Output is untrusted text.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ExportRequest" }
+      responses:
+        "200": { $ref: "#/components/responses/ExportResult" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/WorkerUnavailable" }
+
+  /api/secure/orders/{id}/export:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+    post:
+      tags: [Orders]
+      summary: Export using the fixed format allowlist and shell-free worker path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [format]
+              properties:
+                format: { type: string, enum: [csv, json] }
+      responses:
+        "200": { $ref: "#/components/responses/ExportResult" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/WorkerUnavailable" }
+
+  /api/vendor/widget.js:
+    get:
+      tags: [Supplier integration]
+      summary: Load the mutable lab-owned supplier widget
+      security: []
+      description: |
+        Readable without an OAuth bearer header because a browser script tag
+        cannot attach that header; deployment network controls still apply.
+        The response is no-store JavaScript. Fixed clients require a build-time
+        SRI pin and reject modified bytes; Vulnerable clients omit SRI.
+      responses:
+        "200":
+          description: Current widget bytes, or the immutable default if not modified
+          content:
+            application/javascript:
+              schema: { type: string }
+
+  /api/secure/vendor/widget.js:
+    get:
+      tags: [Supplier integration]
+      summary: Load only the immutable trusted lab-owned widget
+      security: []
+      responses:
+        "200":
+          description: Trusted script bytes independent of the mutable database copy
+          content:
+            application/javascript:
+              schema: { type: string }
+
+  /api/vendor/widget:
+    put:
+      tags: [Supplier integration]
+      summary: Publish a lab-owned supplier script (SC-01 exercise)
+      description: |
+        With SC-01 enabled, any authenticated purchaser can overwrite the script,
+        deliberately omitting publisher-role authorization. With SC-01 disabled,
+        publishing is denied even to application administrators. This affects
+        only the lab's mock supplier, not a real vendor, registry or dependency.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WidgetUpdate" }
+      responses:
+        "200":
+          description: Widget updated; clients load the changed bytes on their next page load
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [updated]
+                properties:
+                  updated: { type: boolean, const: true }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/debug/database-config:
+    get:
+      tags: [System]
+      summary: Read exposed lab database metadata
+      security: []
+      responses:
+        "200": { description: Allowlisted SQLite metadata; never secrets }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/orders/search:
+    get:
+      tags: [Orders]
+      summary: Search orders through the SQL injection exercise
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string, maxLength: 256, default: "" }
+      responses:
+        "200": { $ref: "#/components/responses/OrderList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/orders/submit:
+    post:
+      tags: [Orders]
+      summary: Submit an order through the SQL injection exercise
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [orderId]
+              properties:
+                orderId: { type: string, minLength: 1, maxLength: 256, example: ORD-A-100 }
+      responses:
+        "200":
+          description: Number of updated records
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated: { type: integer }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /api/secure/debug/database-config:
+    get:
+      tags: [System]
+      summary: Read database metadata with management authentication
+      security: [{ labManagement: [] }]
+      responses:
+        "200": { description: Allowlisted SQLite metadata; never secrets }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/secure/orders/search:
+    get:
+      tags: [Orders]
+      summary: Parameterised order search with ownership checks
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string, maxLength: 256, default: "" }
+      responses:
+        "200": { $ref: "#/components/responses/OrderList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/secure/orders/submit:
+    post:
+      tags: [Orders]
+      summary: Submit an owned draft using a parameterised update
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [orderId]
+              properties:
+                orderId: { type: string, minLength: 1, maxLength: 256, example: ORD-A-100 }
+      responses:
+        "200":
+          description: Number of updated records
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updated: { type: integer }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /api/lab/reset:
+    post:
+      tags: [System]
+      summary: Destructively restore synthetic seed data (operator only)
+      description: Requires lab mode, a configured management secret and explicit confirmation.
+      security: [{ labManagement: [] }]
+      parameters:
+        - name: X-Lab-Confirm-Reset
+          in: header
+          required: true
+          schema: { type: string, enum: [RESET-SYNTHETIC-DATA] }
+      responses:
+        "200": { description: Seed data restored transactionally }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/health:
+    get:
+      tags: [System]
+      summary: Check backend health
+      security: []
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, application, trainingOnly, warning]
+                properties:
+                  status: { type: string, example: UP }
+                  application: { type: string, example: deep-cyber-sample-backend }
+                  trainingOnly: { type: boolean, const: true }
+                  warning: { type: string }
+
+  /api/auth/login:
+    post:
+      tags: [Authentication]
+      summary: Retired password-login shortcut; use OAuth authorization code flow
+      security: []
+      responses:
+        "410": { description: OAuth browser sign-in required }
+
+  /api/auth/me:
+    get:
+      tags: [Authentication]
+      summary: Current account from a signed OAuth access token
+      responses:
+        "200":
+          description: Current account
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/orders:
+    get:
+      tags: [Orders]
+      summary: List orders visible through the exercise route
+      responses:
+        "200": { $ref: "#/components/responses/OrderList" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/orders/{id}:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+    get:
+      tags: [Orders]
+      summary: Read an order through the exercise route
+      responses:
+        "200": { $ref: "#/components/responses/Order" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      tags: [Orders]
+      summary: Update an order through the exercise route
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OrderExerciseUpdate" }
+      responses:
+        "200": { $ref: "#/components/responses/Order" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/secure/orders:
+    get:
+      tags: [Orders]
+      summary: List orders using the corrected authorisation policy
+      responses:
+        "200": { $ref: "#/components/responses/OrderList" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/secure/orders/{id}:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+    get:
+      tags: [Orders]
+      summary: Read an order using the corrected authorisation policy
+      responses:
+        "200": { $ref: "#/components/responses/Order" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      tags: [Orders]
+      summary: Update only allowlisted order fields
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/OrderSafeUpdate" }
+      responses:
+        "200": { $ref: "#/components/responses/Order" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /api/admin/overview:
+    get:
+      tags: [Administration]
+      summary: Read the exercise administrative overview
+      parameters:
+        - name: X-Training-Role
+          in: header
+          required: false
+          description: Client-side training claim processed by the gateway
+          schema: { type: string, example: USER }
+      responses:
+        "200": { $ref: "#/components/responses/AdminOverview" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/secure/admin/overview:
+    get:
+      tags: [Administration]
+      summary: Read the overview using the corrected server-side role policy
+      responses:
+        "200": { $ref: "#/components/responses/AdminOverview" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /api/tools/fetch-preview:
+    post:
+      tags: [URL preview]
+      summary: Preview a URL using the exercise validator
+      description: This lab operation is deterministic and performs no DNS or network request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FetchPreviewRequest" }
+      responses:
+        "200": { $ref: "#/components/responses/FetchPreview" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/secure/tools/fetch-preview:
+    post:
+      tags: [URL preview]
+      summary: Preview a URL using an allowlist
+      description: This lab operation is deterministic and performs no DNS or network request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FetchPreviewRequest" }
+      responses:
+        "200": { $ref: "#/components/responses/FetchPreview" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/workflows:
+    post:
+      tags: [Workflows]
+      summary: Start a simulated workflow through the exercise route
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkflowRequest" }
+      responses:
+        "201": { $ref: "#/components/responses/Workflow" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/workflows/{id}:
+    parameters:
+      - $ref: "#/components/parameters/WorkflowId"
+    get:
+      tags: [Workflows]
+      summary: Read a simulated workflow through the exercise route
+      responses:
+        "200": { $ref: "#/components/responses/Workflow" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/workflows/{id}/callback:
+    parameters:
+      - $ref: "#/components/parameters/WorkflowId"
+    post:
+      tags: [Workflows]
+      summary: Send a simulated workflow callback through the exercise route
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkflowCallback" }
+      responses:
+        "200": { $ref: "#/components/responses/Workflow" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/secure/workflows:
+    post:
+      tags: [Workflows]
+      summary: Start an authorised, idempotent simulated workflow
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkflowRequest" }
+      responses:
+        "200": { $ref: "#/components/responses/Workflow" }
+        "201": { $ref: "#/components/responses/Workflow" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /api/secure/workflows/{id}:
+    parameters:
+      - $ref: "#/components/parameters/WorkflowId"
+    get:
+      tags: [Workflows]
+      summary: Read an authorised simulated workflow
+      responses:
+        "200": { $ref: "#/components/responses/Workflow" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/secure/workflows/{id}/callback:
+    parameters:
+      - $ref: "#/components/parameters/WorkflowId"
+    post:
+      tags: [Workflows]
+      summary: Send an authenticated, replay-protected simulated callback
+      security:
+        - callbackToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/WorkflowCallback" }
+      responses:
+        "200": { $ref: "#/components/responses/Workflow" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+components:
+  securitySchemes:
+    labManagement:
+      type: apiKey
+      in: header
+      name: X-Lab-Reset-Token
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: OAuth access token from Northstar Identity; ID tokens are not accepted. See docs/OAUTH_OIDC.md.
+    callbackToken:
+      type: apiKey
+      in: header
+      name: X-Workflow-Callback-Token
+
+  parameters:
+    OrderId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        examples: [ORD-A-100, ORD-B-100]
+    WorkflowId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: "^WF-[0-9]{4}$"
+        example: WF-0001
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 8
+        maxLength: 128
+        example: training-request-0001
+
+  schemas:
+    UiPolicy:
+      type: object
+      required: [xssEnabled, supplyChainEnabled, revision, widgetIntegrity]
+      properties:
+        xssEnabled: { type: boolean }
+        supplyChainEnabled: { type: boolean }
+        revision: { type: string }
+        widgetIntegrity:
+          type: string
+          description: Immutable trusted script digest; never computed from the mutable database copy
+          example: sha384-QCSo6c2cwb9ScxwSQfPKbs5MQw/5DE4QrDDcmAdDdOQG1DeU0bx0GxT0A/vQ9X4O
+    OrderNotes:
+      type: object
+      required: [orderId, html]
+      properties:
+        orderId: { type: string, example: ORD-A-100 }
+        html: { type: string, maxLength: 8192 }
+    NotesUpdate:
+      type: object
+      required: [html]
+      properties:
+        html: { type: string, maxLength: 8192, example: "<p>Please use the receiving entrance.</p>" }
+    WidgetUpdate:
+      type: object
+      required: [script]
+      properties:
+        script: { type: string, minLength: 1, maxLength: 16384 }
+    ExportRequest:
+      type: object
+      required: [format]
+      properties:
+        format:
+          type: string
+          minLength: 1
+          maxLength: 128
+          description: No control characters; only csv/json are accepted when CMD-01 is disabled
+          example: csv
+    ExportResult:
+      type: object
+      required: [output, exitCode, timedOut]
+      properties:
+        output: { type: string, description: Untrusted plain text; limited to 24576 UTF-8 bytes }
+        exitCode: { type: integer, minimum: -255, maximum: 255 }
+        timedOut: { type: boolean }
+    User:
+      type: object
+      required: [id, displayName, email, tenantId, organizationName, jobTitle, role]
+      properties:
+        id: { type: string, example: alice }
+        displayName: { type: string, example: Alice Avery }
+        email: { type: string, format: email, example: alice.avery@aster-row.test }
+        tenantId: { type: string, example: tenant-a }
+        organizationName: { type: string, example: Aster & Row }
+        jobTitle: { type: string, example: Procurement Analyst }
+        role: { type: string, enum: [USER, ADMIN] }
+    Order:
+      type: object
+      required: [id, tenantId, ownerId, item, quantity, unitPrice, status, workflowStarts, version]
+      properties:
+        id: { type: string, example: ORD-A-100 }
+        tenantId: { type: string, example: tenant-a }
+        ownerId: { type: string, example: alice }
+        item: { type: string, example: Laptop stand }
+        quantity: { type: integer, example: 1 }
+        unitPrice: { type: number, example: 49.90 }
+        status: { type: string, example: DRAFT }
+        workflowStarts: { type: integer, minimum: 0, example: 0 }
+        version: { type: integer, minimum: 1, example: 1 }
+        total: { type: number, readOnly: true, example: 49.90 }
+    OrderExerciseUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        tenantId: { type: string }
+        ownerId: { type: string }
+        item: { type: string }
+        quantity: { type: integer }
+        unitPrice: { type: number }
+        status: { type: string }
+    OrderSafeUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        item: { type: string, minLength: 3, maxLength: 80 }
+        quantity: { type: integer, minimum: 1, maximum: 100 }
+    AdminOverview:
+      type: object
+      required: [generatedFor, scope, trustedRoleSource, userCount, orderCount, workflowCount, totalOrderValue, trainingOnly]
+      properties:
+        generatedFor: { type: string }
+        scope: { type: string }
+        trustedRoleSource: { type: string }
+        userCount: { type: integer }
+        orderCount: { type: integer }
+        workflowCount: { type: integer }
+        totalOrderValue: { type: number }
+        trainingOnly: { type: boolean, const: true }
+    FetchPreviewRequest:
+      type: object
+      additionalProperties: false
+      required: [url]
+      properties:
+        url:
+          type: string
+          format: uri
+          example: https://public.example.test/assets/demo.txt
+    FetchPreviewResponse:
+      type: object
+      required: [requestedUrl, resolvedHost, simulatedStatus, body, networkAccessPerformed, warning]
+      properties:
+        requestedUrl: { type: string, format: uri }
+        resolvedHost: { type: string }
+        simulatedStatus: { type: integer }
+        body: { type: string }
+        networkAccessPerformed: { type: boolean, const: false }
+        warning: { type: string }
+    WorkflowRequest:
+      type: object
+      additionalProperties: false
+      required: [orderId, action]
+      properties:
+        orderId: { type: string, example: ORD-A-100 }
+        action: { type: string, example: SUBMIT_FOR_APPROVAL }
+    WorkflowCallback:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status: { type: string, example: COMPLETED }
+    Workflow:
+      type: object
+      required: [id, orderId, tenantId, requestedBy, action, status, executionNumber, callbackCount, createdAt]
+      properties:
+        id: { type: string, example: WF-0001 }
+        orderId: { type: string, example: ORD-A-100 }
+        tenantId: { type: string, example: tenant-a }
+        requestedBy: { type: string, example: alice }
+        action: { type: string, example: SUBMIT_FOR_APPROVAL }
+        status: { type: string, example: RUNNING }
+        executionNumber: { type: integer, minimum: 1 }
+        callbackCount: { type: integer, minimum: 0 }
+        createdAt: { type: string, format: date-time }
+    ApiError:
+      type: object
+      required: [timestamp, status, error, code, message, path, trainingOnly]
+      properties:
+        timestamp: { type: string, format: date-time }
+        status: { type: integer }
+        error: { type: string }
+        code: { type: string }
+        message: { type: string }
+        path: { type: string }
+        trainingOnly: { type: boolean, const: true }
+
+  responses:
+    OrderNotes:
+      description: Untrusted persisted HTML notes
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/OrderNotes" }
+    ExportResult:
+      description: Bounded worker result; timeout is indicated in the body
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ExportResult" }
+    WorkerUnavailable:
+      description: Isolated worker is absent, unreachable or returned an invalid response; no application shell fallback
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+    Order:
+      description: Order
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Order" }
+    OrderList:
+      description: Orders
+      content:
+        application/json:
+          schema:
+            type: array
+            items: { $ref: "#/components/schemas/Order" }
+    AdminOverview:
+      description: Administrative summary of synthetic data
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/AdminOverview" }
+    FetchPreview:
+      description: Simulated preview; no network request was performed
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/FetchPreviewResponse" }
+    Workflow:
+      description: Simulated workflow execution
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Workflow" }
+    BadRequest:
+      description: Invalid input
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+    Unauthorized:
+      description: Missing or invalid synthetic bearer token
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+    Forbidden:
+      description: Authenticated but not authorised
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+    NotFound:
+      description: Synthetic resource not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }
+    Conflict:
+      description: Request conflicts with workflow or order state
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ApiError" }

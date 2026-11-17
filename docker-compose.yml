@@ -1,0 +1,141 @@
+name: deep-cyber-security-lab
+
+services:
+  backend:
+    build:
+      context: ./backend
+    environment:
+      LAB_TRAINING_MODE: "true"
+      LAB_DATABASE_PATH: /app/data/northstar.db
+      LAB_RESET_TOKEN: ${LAB_RESET_TOKEN:-}
+      LAB_OIDC_ISSUER: ${LAB_OIDC_ISSUER:-http://localhost:8080}
+      LAB_OIDC_REDIRECT_URI: ${LAB_OIDC_REDIRECT_URI:-http://localhost:8080/callback}
+      LAB_IDENTITY_PATH: /app/identity/identity.db
+      LAB_SIGNING_KEY_PATH: /app/keys/signing.jwk
+      LAB_VULNERABILITY_CONFIG_PATH: /app/lab-config/vulnerabilities.json
+      LAB_EXPORT_SOCKET: /run/northstar-export/export.sock
+      LAB_CALLBACK_TOKEN: ${LAB_CALLBACK_TOKEN:-}
+      LAB_COOKIE_SECURE: ${LAB_COOKIE_SECURE:-false}
+    volumes:
+      - lab-data:/app/data
+      - identity-data:/app/identity
+      - identity-keys:/app/keys
+      - lab-config:/app/lab-config:ro
+      - export-socket:/run/northstar-export:ro
+    depends_on:
+      - owner-control
+      - export-worker
+    expose:
+      - "8080"
+    # A loopback-only origin port is useful for comparing gateway and origin
+    # behaviour. It is not reachable from outside the Docker host.
+    ports:
+      - "127.0.0.1:18080:8080"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - lab
+
+  # Separate management origin: never put owner credentials in the SPA or API.
+  owner-control:
+    build:
+      context: .
+      dockerfile: owner-control/Dockerfile
+    env_file:
+      - path: ./owner-control/.env
+        required: false # Server refuses to start without valid credentials; permits offline config validation.
+    environment:
+      NORTHSTAR_CONFIG_PATH: /config/vulnerabilities.json
+      NORTHSTAR_OWNER_ORIGIN: http://localhost:8081
+    ports:
+      - "127.0.0.1:8081:8081"
+    volumes:
+      - lab-config:/config
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 16
+    mem_limit: 64m
+    cpus: 0.25
+    restart: unless-stopped
+    networks: [owner]
+    logging:
+      options: {max-size: "5m", max-file: "2"}
+
+  # No IP network, identity/data/config mounts, credentials, or Docker socket.
+  # These protections are unconditional, including in Enable All mode.
+  export-worker:
+    build: ./export-worker
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 32
+    mem_limit: 64m
+    memswap_limit: 64m
+    cpus: 0.25
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=16m,uid=10001,gid=10001,mode=0700
+    volumes:
+      - export-socket:/run/northstar-export
+    restart: unless-stopped
+    logging:
+      options: {max-size: "5m", max-file: "2"}
+
+  frontend:
+    build:
+      context: ./frontend
+    expose:
+      - "80"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - lab
+
+  gateway:
+    build:
+      context: ./gateway
+    depends_on:
+      - backend
+      - frontend
+    ports:
+      - "${LAB_BIND_ADDRESS:-127.0.0.1}:${LAB_PORT:-8080}:8080"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - lab
+
+networks:
+  owner:
+    driver: bridge
+    # Separate from lab network. Loopback-only publishing also works with
+    # Docker-on-Mac port forwarding (internal bridges can suppress forwarding).
+  lab:
+    driver: bridge
+
+volumes:
+  lab-data:
+  identity-data:
+  identity-keys:
+  lab-config:
+  export-socket:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+      o: size=1m,uid=10001,gid=10001,mode=0755,nosuid,nodev,noexec

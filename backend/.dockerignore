@@ -1,0 +1,15 @@
+target/
+data/
+identity/
+keys/
+*.jwk
+*.db
+*.db-wal
+*.db-shm
+.env
+.env.*
+.git/
+.idea/
+.vscode/
+*.iml
+*.log

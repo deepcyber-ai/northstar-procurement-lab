@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Northstar | Owner demo reference</title>
+<style>
+body{margin:0;background:#091426;color:#edf5ff;font:17px/1.6 system-ui,sans-serif}main{max-width:900px;margin:6vh auto;padding:28px}h1{font-size:2.2rem;line-height:1.2}h2{margin-top:2rem}.eyebrow{color:#64ded1;text-transform:uppercase;letter-spacing:.12em;font-size:.8rem}table{width:100%;border-collapse:collapse}td,th{text-align:left;border-bottom:1px solid #33435a;padding:12px 8px}code{background:#182c43;padding:3px 7px;border-radius:4px}.note{border-left:3px solid #64ded1;padding:12px 18px;background:#10263a}.table{overflow-x:auto}small{color:#b1c0d5}
+</style></head><body><main>
+<p class="eyebrow">Deep Cyber / Owner reference</p><h1>Northstar demo guide</h1>
+<p>Private reference for running the synthetic procurement demo. This page is separate from the application and is not a penetration-test target.</p>
+<h2>Lab profile</h2><p><a href="/controls" style="color:#64ded1">Open vulnerability controls</a> to enable all exercises, switch to Fixed, or choose individual flaws. Coordinate profile changes with other testers.</p>
+<h2>Demo accounts</h2><p>Demo account password: <code>Welcome123!</code></p>
+<div class="table"><table><thead><tr><th>Person</th><th>Organisation / role</th><th>Work email</th></tr></thead><tbody>
+<tr><td>Alice Avery</td><td>Aster Row / user</td><td>alice.avery@aster-row.test</td></tr>
+<tr><td>Alex Archer</td><td>Aster Row / user</td><td>alex.archer@aster-row.test</td></tr>
+<tr><td>Ada Morgan</td><td>Aster Row / administrator</td><td>ada.morgan@aster-row.test</td></tr>
+<tr><td>Bob Baker</td><td>Beacon Works / user</td><td>bob.baker@beacon-works.test</td></tr>
+<tr><td>Ben Carter</td><td>Beacon Works / administrator</td><td>ben.carter@beacon-works.test</td></tr>
+</tbody></table></div>
+<h2>Quick walkthrough</h2><ol>
+<li>Open the main Northstar application in another tab. Select <strong>Sign in</strong> and use Alice's demo account.</li>
+<li>Open an order and inspect its details and workflow history.</li>
+<li>Sign out, then select <strong>Return to sign in</strong> to finish clearing the identity session.</li>
+<li>Sign in as Bob to compare the other organisation, or Ada to view administrator functionality.</li>
+</ol>
+<p class="note">Use the accounts above only in the Northstar lab. Never give the owner-page password to a scanner, paste it into the app, or use it as a demo-user password.</p>
+<h2>Access and sign-out</h2><p>The owner page requires its own password plus an allowed network IP. App administrator accounts do not grant access here. Use a private browser window and close it after use: browsers may remember HTTP Basic credentials, and app sign-out does not clear them.</p>
+<small>Synthetic data only. The sample application is deliberately vulnerable; keep its network restrictions in place.</small>
+</main></body></html>

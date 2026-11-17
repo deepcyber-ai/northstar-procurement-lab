@@ -1,0 +1,104 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.app-header {
+  align-items: center;
+  background: rgba(9, 18, 37, 0.96);
+  border-bottom: 1px solid #263652;
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(220px, 1fr) auto minmax(220px, 1fr);
+  padding: 1rem clamp(1rem, 4vw, 4rem);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.brand {
+  align-items: center;
+  color: #f7fbff;
+  display: flex;
+  gap: 0.75rem;
+  text-decoration: none;
+}
+
+.brand-mark {
+  align-items: center;
+  background: linear-gradient(145deg, #43d7c6, #39a0ff);
+  border-radius: 0.65rem;
+  color: #07101f;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 900;
+  height: 2.5rem;
+  justify-content: center;
+  letter-spacing: -0.03em;
+  width: 2.7rem;
+}
+
+.brand small,
+.identity small {
+  color: #9eb0c9;
+  display: block;
+  font-size: 0.72rem;
+  margin-top: 0.15rem;
+}
+
+nav {
+  display: flex;
+  gap: 0.35rem;
+}
+
+nav a {
+  border-radius: 0.5rem;
+  color: #b8c6da;
+  padding: 0.55rem 0.8rem;
+  text-decoration: none;
+}
+
+nav a:hover,
+nav a.active {
+  background: #172844;
+  color: #f5fbff;
+}
+
+nav a.admin-link {
+  color: #ffd99a;
+}
+
+.identity {
+  align-items: center;
+  display: flex;
+  gap: 0.8rem;
+  justify-self: end;
+  text-align: right;
+}
+
+main {
+  min-height: calc(100vh - 9rem);
+}
+
+footer {
+  color: #8192aa;
+  font-size: 0.78rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+@media (max-width: 850px) {
+  .app-header {
+    grid-template-columns: 1fr auto;
+  }
+
+  nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: center;
+  }
+
+  .identity span {
+    display: none;
+  }
+}

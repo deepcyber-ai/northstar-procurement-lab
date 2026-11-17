@@ -1,0 +1,10 @@
+# Root build context is only for the isolated owner service. Do not send repo
+# history, private env files, Terraform state, results or credentials to Docker.
+**
+!owner-control/
+!owner-control/control.py
+!owner-control/local_server.py
+!owner-control/Dockerfile
+!infra-aws-native/
+!infra-aws-native/functions/
+!infra-aws-native/functions/owner-demo.html

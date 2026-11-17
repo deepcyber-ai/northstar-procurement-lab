@@ -1,0 +1,4 @@
+==========================================================================
+  DEEP CYBER SAMPLE -- DELIBERATELY VULNERABLE -- TRAINING ONLY
+  NEVER EXPOSE THIS SERVICE TO THE INTERNET OR DEPLOY IT TO PRODUCTION
+==========================================================================

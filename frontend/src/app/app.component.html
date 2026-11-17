@@ -1,0 +1,43 @@
+<header class="app-header">
+  <a
+    class="brand"
+    [routerLink]="session.isLoggedIn() ? '/orders' : '/login'"
+    aria-label="Northstar Procurement home"
+  >
+    <span class="brand-mark">N</span>
+    <span>
+      <strong>Northstar Procurement</strong>
+      <small>Purchasing workspace</small>
+    </span>
+  </a>
+
+  @if (session.isLoggedIn()) {
+    <nav aria-label="Main navigation">
+      <a routerLink="/orders" routerLinkActive="active">Orders</a>
+      <a routerLink="/workflows" routerLinkActive="active">Workflows</a>
+
+      <!-- Deliberately insecure: authorization is only a presentation decision. -->
+      @if (session.isAdmin()) {
+        <a class="admin-link" routerLink="/admin" routerLinkActive="active">Admin</a>
+      }
+    </nav>
+
+    <div class="identity">
+      <span>
+        <strong>{{ session.user()?.displayName }}</strong>
+        <small>{{ session.user()?.organizationName }} · {{ session.user()?.jobTitle }}</small>
+      </span>
+      <button class="secondary small" type="button" (click)="logout()">
+        Sign out
+      </button>
+    </div>
+  }
+</header>
+
+<main>
+  <router-outlet />
+</main>
+
+<footer>
+  Northstar Procurement · Demonstration environment with synthetic data
+</footer>

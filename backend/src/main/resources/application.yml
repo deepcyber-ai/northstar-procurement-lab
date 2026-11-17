@@ -1,0 +1,40 @@
+server:
+  servlet:
+    session:
+      cookie:
+        name: NORTHSTAR_IDP
+        path: /auth
+        http-only: true
+        secure: ${LAB_COOKIE_SECURE:false}
+        same-site: lax
+      timeout: 30m
+  port: 8080
+  error:
+    include-message: never
+
+spring:
+  application:
+    name: deep-cyber-sample-backend
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+
+lab:
+  oidc-issuer: ${LAB_OIDC_ISSUER:http://localhost:8080}
+  oidc-redirect-uri: ${LAB_OIDC_REDIRECT_URI:http://localhost:8080/callback}
+  identity-path: ${LAB_IDENTITY_PATH:./identity/identity.db}
+  signing-key-path: ${LAB_SIGNING_KEY_PATH:./keys/signing.jwk}
+  vulnerability-config-path: ${LAB_VULNERABILITY_CONFIG_PATH:}
+  vulnerabilities-default: ${LAB_VULNERABILITIES_DEFAULT:all}
+  access-token-ttl: ${LAB_ACCESS_TOKEN_TTL_SECONDS:86400}
+  refresh-token-ttl: ${LAB_REFRESH_TOKEN_TTL_SECONDS:604800}
+  training-mode: ${LAB_TRAINING_MODE:false}
+  database-path: ${LAB_DATABASE_PATH:./data/northstar.db}
+  reset-token: ${LAB_RESET_TOKEN:}
+  callback-token: ${LAB_CALLBACK_TOKEN:}
+  allowed-origin-patterns: ${LAB_ALLOWED_ORIGIN_PATTERNS:http://localhost:*}
+
+logging:
+  level:
+    root: INFO
+    com.deepcyber.training: INFO
