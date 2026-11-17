@@ -8,16 +8,20 @@ workflows. All accounts and data are synthetic.
 Use it with ARTEX, Strix, Burp, ZAP, an API client or manual testing. No testing
 tool or LLM service is embedded in the app.
 
-**v0.1.0-rc.2 is a Docker-first public review candidate.** See the
+**Start here:** [ARTEX discovery → reviewed brief → fresh Strix retests](docs/ARTEX_TO_STRIX_RETEST_TUTORIAL.md).
+The walkthrough begins with a small login/API check, then shows how to confirm
+one tenant-boundary finding and verify its fix.
+
+**v0.1.0-rc.3 is a Docker-first public review candidate.** See the
 [release notes](docs/RELEASE_NOTES.md) for verification status and limitations.
 Do not expose this intentionally vulnerable app to the public Internet or put
 real data in it. The Fixed profile corrects the seeded exercises; it does not
 make Northstar production-ready.
 
-![Northstar Procurement landing page, with a Sign in button](docs/screenshots/northstar-home.jpg)
+<img src="docs/screenshots/northstar-home.jpg" alt="Northstar Procurement landing page with a Sign in button" width="620">
 
-*Northstar's current landing page, shown at a narrow browser width. The local
-Docker lab uses the same application screens.*
+*Cropped view of Northstar's current landing page. The local Docker lab uses
+the same application screens.*
 
 ## Why practise on Northstar?
 

@@ -15,7 +15,7 @@ Choose **Sign in**, then enter your email/password on **Northstar Login**.
 You return to your orders after the OAuth callback.
 See [authentication and session behaviour](LAB_OPERATIONS.md#authentication-and-browser-state).
 
-![Empty Northstar Login form with Work email and Password fields](screenshots/northstar-login.jpg)
+<img src="screenshots/northstar-login.jpg" alt="Empty Northstar Login form with Work email and Password fields" width="360">
 
 *Northstar Login before entering credentials; no password is pictured.*
 
@@ -43,7 +43,7 @@ browser profiles when comparing users. Sign out before switching users in the sa
 3. Review the orders shown for the account.
 4. Open an order to see its quantity, value, status, requester, and approval history.
 
-![Alice's synthetic laptop-stand order summary](screenshots/northstar-order-summary.jpg)
+<img src="screenshots/northstar-order-summary.jpg" alt="Alice's synthetic laptop-stand order summary" width="480">
 
 *Example order detail for Alice's synthetic account. Your order values may
 differ if the lab has been changed or reset.*

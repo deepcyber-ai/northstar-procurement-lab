@@ -1,7 +1,7 @@
 # Local ARTEX and Strix connection setup
 
 This is the local connection recipe for the Northstar
-`v0.1.0-rc.2` public-review walkthrough: Northstar, containerised ARTEX and native Strix's
+`v0.1.0-rc.3` public-review walkthrough: Northstar, containerised ARTEX and native Strix's
 Docker sandbox use **one local Docker engine**. Use only your own isolated lab
 and its synthetic accounts. No private toolkit, cloud deployment, proxy
 certificate or existing colleague workstation is required.

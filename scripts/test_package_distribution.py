@@ -14,7 +14,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "package_distribution.sh"
-PROJECT = "northstar-procurement-0.1.0-rc.2"
+PROJECT = "northstar-procurement-0.1.0-rc.3"
 SOURCE = SCRIPT.read_text(encoding="utf-8")
 # Read only literal allowlists, never execute the embedded packager in-process.
 PYTHON_SOURCE = SOURCE.split("<<'PY'\n", 1)[1].rsplit("\nPY", 1)[0]
@@ -43,7 +43,7 @@ class ReleaseTests(unittest.TestCase):
             self.put(relative, "Synthetic release fixture.\n")
         shutil.copy2(SCRIPT, self.root / "package_distribution.sh")
         shutil.copy2(Path(__file__), self.root / "scripts/test_package_distribution.py")
-        self.put("VERSION", "0.1.0-rc.2\n")
+        self.put("VERSION", "0.1.0-rc.3\n")
         self.put(".env.example", "LAB_CALLBACK_TOKEN=\n")
 
     def put(self, relative, content):

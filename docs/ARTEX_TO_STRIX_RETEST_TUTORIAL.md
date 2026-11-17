@@ -168,7 +168,7 @@ attached to this task. Export or attach a reviewed capture intentionally if it
 is relevant. Review and redact tokens in any capture. An HTTP fetch
 alone does not prove the Angular UI was exercised.
 
-![Example Northstar order summary after Alice signs in](screenshots/northstar-order-summary.jpg)
+<img src="screenshots/northstar-order-summary.jpg" alt="Example Northstar order summary after Alice signs in" width="480">
 
 *A visual reference for the Alice journey, not proof that ARTEX completed its
 own login or API call. Check the task's actual Sessions and request evidence.*
