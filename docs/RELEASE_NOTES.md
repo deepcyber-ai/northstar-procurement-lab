@@ -1,10 +1,16 @@
-# Northstar Procurement 0.1.0-rc.3
+# Northstar Procurement 0.1.0-rc.4
 
 **Release status:** Docker-only public-review candidate, prepared 17 November
 2026. It is not a production application or an independent security certification.
 Northstar Procurement is licensed under [Apache-2.0](../LICENSE); see
 [NOTICE](../NOTICE) for attribution. External tools and dependencies retain
 their own licences.
+
+## Changes since rc.3
+
+The README opening now links to the access-controlled AWS-native Northstar
+deployment and DeepCyber AI contact page for access requests. The public ZIP
+remains Docker-only; no AWS configuration or deployment machinery was added.
 
 ## Changes since rc.2
 
@@ -64,12 +70,12 @@ audits the current source and a temporary ZIP without writing a deliverable.
 Packaging creates this versioned folder only after the ZIP audit succeeds:
 
 ```text
-dist/northstar-procurement-0.1.0-rc.3/
-  northstar-procurement-0.1.0-rc.3.zip
-  northstar-procurement-0.1.0-rc.3.zip.sha256
+dist/northstar-procurement-0.1.0-rc.4/
+  northstar-procurement-0.1.0-rc.4.zip
+  northstar-procurement-0.1.0-rc.4.zip.sha256
 ```
 
-From that folder, run `shasum -a 256 -c northstar-procurement-0.1.0-rc.3.zip.sha256`
+From that folder, run `shasum -a 256 -c northstar-procurement-0.1.0-rc.4.zip.sha256`
 before unpacking. An existing candidate folder is never replaced; prepare another
 candidate version for a changed snapshot. Failed builds do not erase earlier
 deliverables. The checksum detects changes but is not a publisher signature.

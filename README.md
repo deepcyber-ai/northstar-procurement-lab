@@ -12,7 +12,11 @@ tool or LLM service is embedded in the app.
 The walkthrough begins with a small login/API check, then shows how to confirm
 one tenant-boundary finding and verify its fix.
 
-**v0.1.0-rc.3 is a Docker-first public review candidate.** See the
+An access-controlled AWS-native version is deployed at
+[northstar.deepcyber-labs.com](https://northstar.deepcyber-labs.com/).
+[Contact DeepCyber AI](https://deepcyber.ai/contact/) to request access.
+
+**v0.1.0-rc.4 is a Docker-first public review candidate.** See the
 [release notes](docs/RELEASE_NOTES.md) for verification status and limitations.
 Do not expose this intentionally vulnerable app to the public Internet or put
 real data in it. The Fixed profile corrects the seeded exercises; it does not
