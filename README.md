@@ -24,10 +24,7 @@ make Northstar production-ready.
 
 <img src="docs/screenshots/northstar-home.jpg" alt="Northstar Procurement landing page with a Sign in button" width="620">
 
-*Cropped view of Northstar's current landing page. The local Docker lab uses
-the same application screens.*
-
-## Why practise on Northstar?
+## Why practise using Northstar?
 
 [Wiz Research's report on ARTEX-associated activity overlapping Storm-0940](https://www.wiz.io/blog/artex-in-the-wild-storm-0940-expands-targeting-of-it-and-software-vendors)
 describes a repeatable progression: map an application and its APIs, probe
